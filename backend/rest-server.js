@@ -40,13 +40,13 @@ var removeRandomNode = function(){deleted++;
 	var topology = response.topology[0];
 	// node that will be removed
 	var toBeRemoved = Math.floor((Math.random() * (topology.node.length - appConfig.baseNodeNumber)) + appConfig.baseNodeNumber);
-	console.log('chose node #' + toBeRemoved + ', ' + topology.node[toBeRemoved]);
+	console.log('removing a node #' + toBeRemoved);
 	var toBeRemovedName = topology.node[toBeRemoved]['node-id'];
 
 	topology.node.splice(toBeRemoved,1);
 	for(var i = 0; i < topology.link.length;)
 		if(topology.link[i].source['source-node'] == toBeRemovedName || topology.link[i].destination['dest-node'] == toBeRemovedName) {
-			console.log('removing link #' + i, ', ', topology.link[i]);
+			console.log('removing link #' + i);
 			topology.link.splice(i, 1);
 		}
 		else
@@ -57,8 +57,7 @@ var liveTopologyProcessing = function(){
 	// pre settings
 	var point = appConfig.baseNodeNumber * appConfig.aplicableMultiplicity;
 	var start = point * (1 - appConfig.permissibleInterval);
-	var end = point * (1 - appConfig.permissibleInterval);
-
+	var end = point * (1 + appConfig.permissibleInterval);
 	var topology = response.topology[0];
 	var nodesNumber = topology.node.length;
 	if(nodesNumber < start){
@@ -69,7 +68,7 @@ var liveTopologyProcessing = function(){
 	}
 	else{
 		var currentAction = Math.floor(Math.random() * 3);
-		if(i == 0){
+		if(currentAction == 0){
 			removeRandomNode();
 		}
 		else{
@@ -77,7 +76,7 @@ var liveTopologyProcessing = function(){
 		}
 	}
 
-	console.log('live running ' + "deleted: " + deleted + ", added: " + added);
+	console.log('live running ' + "current: " + response.topology[0].node.length);
 };
 // initialize uncontrolled changes in network topology
 var liveTopologyTimer = setInterval(liveTopologyProcessing,500);
