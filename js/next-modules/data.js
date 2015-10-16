@@ -3,10 +3,10 @@ This module implements data processing
 */
 
 // define an empty topology data object
-var topologyData = {};
+var nodesNames = [];
 
 // function transforms odl respond to next json format
-var odl2next = function (data) {
+var odl2next = function (nx,topology,data) {
 	// prepare stub for results
 	var topologyResult = {nodes: [], links: []};
 
@@ -14,9 +14,35 @@ var odl2next = function (data) {
 	try {
 		// parsing JSON; if fails, it throws 'SyntaxError'
 		data = JSON.parse(data);
-
 		// create alias
-		var topology = data.topology[0];
+		var fetchedTopology = data.topology[0];
+
+		//if(topology.nodes.length > 41) console.log(topology.getNode(41));
+
+
+		/*
+		// go through fetched nodes' array
+		nx.each(data.node, function (nodeData) {
+			var node = topology.getNode(nodeData.id);
+			// if it's an array it means the node exists and we don't need to add it
+			if(typeof(node) != 'Array'){
+				topology.addNode(nodeData);
+			}
+		});
+		// go through fetched links' array
+		nx.each(data.links,function(linkData){
+			var link = topology.getLink(linkData.id);
+			// if it's an array it means the link exists and we don't need to add it
+			if(typeof(link) != 'Array'){
+				topology.addLink(linkData);
+			}
+		});
+		// adjust topology's size
+		topo.fit();
+*/
+
+/*
+
 
 		// process nodes
 		for (var i = 0; i < topology.node.length; i++) {
@@ -33,7 +59,7 @@ var odl2next = function (data) {
 
  x: Math.floor(Math.random() * 800 + 10),
  y: Math.floor(Math.random() * 400 + 10),
- */
+
 		// processing links
 		for (i = 0; i < topology.link.length; i++) {
 			var link = {
@@ -43,7 +69,7 @@ var odl2next = function (data) {
 			};
 			// add the link to the result object
 			topologyResult.links.push(link);
-		}
+		} */
 	}
 	catch(SyntaxError){
 		alert('JSON response with topology data is not valid.\nVerify you REST API and server-side application.');
@@ -60,11 +86,7 @@ var loadJSON = function(app,topology) {
 		// as soon as scripts receives valid result, this function will be run
 		success: function (data) {
 			// process ODL topology's JSON to turn it to next json
-			topologyData = odl2next(data);
-			// feed topology object with nodes and links...
-			topology.data(topologyData);
-			// ... then attach the topology to the app instance
-			topology.attach(app);
+			odl2next(nx,topology,data);
 		},
 		// errors will never pass silently
 		error: function (jqXHR, exception) {

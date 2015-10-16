@@ -10,7 +10,8 @@ Main module that manages the topology app
 	var topology = topologyContainer.topology();
 	//assign the app to the <div>
 	app.container(document.getElementById('next-app'));
-	loadJSON(app,topology);
-	setInterval(loadJSON,1000,app,topology);
+	loadJSON(app,topology,nx);
+	topology.attach(app);
+	setInterval(loadJSON,1000,app,topology,nx);
 
 })(nx);
