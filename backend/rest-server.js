@@ -9,7 +9,8 @@ var appConfig = {
 	'live': true,
 	'baseNodeNumber': response.topology[0].node.length,
 	'aplicableMultiplicity': 5, // maximum number of host per 1 router,
-	'permissibleInterval': 0.25 // (baseNodeNumber * aplicableMultiplicity) +- permissibleInterval%
+	'permissibleInterval': 0.25, // (baseNodeNumber * aplicableMultiplicity) +- permissibleInterval%
+	'timeout': 3000
 };
 
 // create a server
@@ -79,7 +80,7 @@ var liveTopologyProcessing = function(){
 	console.log('live running ' + "current: " + response.topology[0].node.length);
 };
 // initialize uncontrolled changes in network topology
-var liveTopologyTimer = setInterval(liveTopologyProcessing,500);
+var liveTopologyTimer = setInterval(liveTopologyProcessing,appConfig.timeout);
 
 server.on('request',function(req,res){
 	// start live network
@@ -87,7 +88,7 @@ server.on('request',function(req,res){
 		appConfig.live = true;
 		res.writeHead(200,{'Access-Control-Allow-Origin': '*'});
 		res.end(JSON.stringify({'command':'start','result':'ok'}));
-		liveTopologyTimer = setInterval(liveTopologyProcessing,500);
+		liveTopologyTimer = setInterval(liveTopologyProcessing,appConfig.timeout);
 		console.log('live: ' + appConfig.live)
 	}
 	// stop live network
