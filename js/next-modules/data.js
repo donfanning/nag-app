@@ -7,30 +7,42 @@ var topologyData = {};
 
 // function transforms odl respond to next json format
 var odl2next = function (data) {
-	// create alias
-	var topology = data.topology[0];
 	// prepare stub for results
 	var topologyResult = {nodes: [], links: []};
-	// process nodes
-	for (var i = 0; i < topology.node.length; i++) {
-		var node = {};
-		// node name
-		if (topology.node[i].hasOwnProperty('node-id')) {
-			node.name = topology.node[i]['node-id'];
+
+	// processing topology
+	try {
+		// parsing JSON; if fails, it throws 'SyntaxError'
+		data = JSON.parse(data);
+
+		// create alias
+		var topology = data.topology[0];
+
+		// process nodes
+		for (var i = 0; i < topology.node.length; i++) {
+			var node = {};
+			// node name
+			if (topology.node[i].hasOwnProperty('node-id')) {
+				node.name = topology.node[i]['node-id'];
+			}
+			// ... other actions with node object ...
+			// add the node to the result object
+			topologyResult.nodes.push(node);
 		}
-		// ... other actions with node object ...
-		// add the node to the result object
-		topologyResult.nodes.push(node);
+
+		// processing links
+		for (i = 0; i < topology.link.length; i++) {
+			var link = {
+				id: i,
+				source: topology.link[i].source['source-node'],
+				target: topology.link[i].destination['dest-node']
+			};
+			// add the link to the result object
+			topologyResult.links.push(link);
+		}
 	}
-	// processing links
-	for (i = 0; i < topology.link.length; i++) {
-		var link = {
-			id: i,
-			source: topology.link[i].source['source-node'],
-			target: topology.link[i].destination['dest-node']
-		};
-		// add the link to the result object
-		topologyResult.links.push(link);
+	catch(SyntaxError){
+		alert('JSON response with topology data is not valid.\nVerify you REST API and server-side application.');
 	}
 	return topologyResult;
 };
