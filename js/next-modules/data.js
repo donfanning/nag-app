@@ -13,7 +13,7 @@ var odl2next = function (nx,topology,data,is_init) {
 	var topologyResult = {nodes: [], links: []};
 
 	// processing topology
-	try {
+	//try {
 		// parsing JSON; if fails, it throws 'SyntaxError'
 		data = JSON.parse(data);
 		// if first time launched
@@ -21,8 +21,18 @@ var odl2next = function (nx,topology,data,is_init) {
 			topology.data(data);
 		// if launched by timer
 		else {
+			var nodesDict = new nx.data.Dictionary({});
+			var linksDict = new nx.data.Dictionary({});
+
+			nx.each(topology.data().nodes,function(node){
+				nodesDict.setItem(node.id,node);
+			});
+			nx.each(topology.data().links,function(link){
+				linksDict.setItem(link.id,link);
+			});
+
 			// go through fetched nodes' array
-			nx.each(data.nodes, function (nodeData) {
+			nx.each(data.nodes, function (nodeData) {//console.log(data.nodes.length);
 				var node = topology.getNode(nodeData.id);
 				if(typeof(node) == 'Array'){
 					// update if necessary
@@ -30,23 +40,37 @@ var odl2next = function (nx,topology,data,is_init) {
 				else{
 					// if it's not array it means the node not exists, so we need to add it
 					topology.addNode(nodeData);
+					topology.data().nodeSet[nodeData.group].nodes.push(nodeData.id);
 				}
+				nodesDict.removeItem(nodeData.id);
 			});
+			// remove deleted nodes
+			nodesDict.each(function(nodeObj,nodeId){
+				topology.removeNode(nodeId);
+			});
+
 			// go through fetched links' array
 			nx.each(data.links,function(linkData){
 				var link = topology.getLink(linkData.id);
 				// if it's an array it means the link exists and we don't need to add it
-				if(typeof(link) != 'Array'){
+				if(typeof(link) == 'Array') {
+					// update if necessary
+				}
+				else{
 					topology.addLink(linkData);
 				}
+				linksDict.removeItem(linkData.id);
+			});
+			nodesDict.each(function(nodeObj,nodeId){
+				topology.removeNode(nodeId);
 			});
 			// adjust topology's size
 			topology.fit();
 		}
-	}
-	catch(SyntaxError){
-		alert('JSON response with topology data is not valid.\nVerify you REST API and server-side application.');
-	}
+	//}
+	//catch(SyntaxError){
+	//	alert('JSON response with topology data is not valid.\nVerify you REST API and server-side application.');
+	//}
 	return topologyResult;
 };
 
