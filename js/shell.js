@@ -15,5 +15,5 @@ Main module that manages the topology app
 	loadJSON(app,topology,nx,true);
 	topology.attach(app);
 	actionBar.attach(app);
-	//setInterval(loadJSON(app,topology,nx,false),1000000);
+	setInterval(function(){loadJSON(app,topology,nx,false)},500);
 })(nx);
