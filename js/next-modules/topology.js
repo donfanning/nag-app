@@ -2,7 +2,6 @@
 This module is intended to configure topology class
  */
 
-
 (function (nx) {
 	nx.define('TopologyContainer', nx.ui.Component, {
 		properties: {
@@ -28,20 +27,24 @@ This module is intended to configure topology class
 						'showIcon': true, // depicts node as a dot if false
 						'nodeConfig': {
 							'label': 'model.name',
-							/*
-							 icon types:
-							 https://developer.cisco.com/media/neXt-site/example.html#Basic/icons
-							 */
 							'iconType': 'switch',
 							'color': '#0how00'
 						},
 						'linkConfig': {
-							'linkType': 'curve' // also: parallel
+							'linkType': 'curve'
 						},
-						'identityKey': 'name', // helps to link source and target
+						nodeSetConfig: {
+							'label': 'model.label',
+							'iconType': 'groupL'
+						},
+						tooltipManagerConfig: {
+							nodeTooltipContentClass: 'TooltipNode',
+							linkTooltipContentClass: 'TooltipLink'
+						},
+						'identityKey': 'id', // helps to link source and target
 						'width': 800,
 						'height': 400,
-						'dataProcessor': 'force', // arrange nodes positions if not set
+						//'dataProcessor': 'force', // arrange nodes positions if not set
 						'enableSmartLabel': true, // moves the labels in order to avoid overlay of them
 						'enableGradualScaling': true, // may slow down, if true
 						'supportMultipleLink': true // if true, two nodes can have more than one link
