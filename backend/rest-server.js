@@ -37,9 +37,22 @@ var log = function(message){
 		console.log(message);
 };
 
+var findArrayKeyByNodeId = function(nodeId){
+	for(var i=0;i<topologyData.nodes.length;i++)
+		if(topologyData.nodes[i].id == nodeId) return i;
+	return -1;
+};
+
+var findArrayKeyByLinkId = function(linkId){
+	for(var i=0;i<topologyData.links.length;i++)
+		if(topologyData.links[i].id == linkId) return i;
+	return -1;
+};
+
 // add a random node
 var addRandomNode = function(){
 	appConfig.lastNodeId++;
+	appConfig.lastLinkId++;
 	// new node
 	var newNodeArrayKey = topologyData.nodes.length;
 	topologyData.nodes.push({
@@ -52,10 +65,11 @@ var addRandomNode = function(){
 	var newLinkedElementId = Math.floor(Math.random() * newNodeArrayKey);
 	var newLinkedNodeId = topologyData.nodes[newLinkedElementId].id;
 	topologyData.links.push({
+		"id": appConfig.lastLinkId,
 		"source": newLinkedNodeId,
 		"target": appConfig.lastNodeId
 	});
-	log(appConfig.lastNodeId + " <- " + newLinkedNodeId);
+	log("linked: " + appConfig.lastNodeId + " <- " + newLinkedNodeId);
 	topologyData.nodes[newNodeArrayKey].group = topologyData.nodes[newLinkedElementId].group;
 	topologyData.nodeSet[topologyData.nodes[newNodeArrayKey].group].nodes.push(appConfig.lastNodeId);
 	debug.added++;
@@ -64,42 +78,34 @@ var addRandomNode = function(){
 // remove node
 var removeNode = function(nodeArrayId){
 	if(nodeArrayId in topologyData.nodes) {
-
 		var node = topologyData.nodes[nodeArrayId];
 		// remove node id from nodeset
 		topologyData.nodeSet[node.group].nodes.splice(topologyData.nodeSet[node.group].nodes.indexOf(node.id),1);
 		topologyData.nodes.splice(nodeArrayId, 1);
-
-		for(var i = 0; i < topologyData.links.length;)
-			if(topologyData.links[i].source == node.id){
-				if(topologyData.links[i].target >= appConfig.baseNodeNumber)
-					removeNode(findArrayKeyByNodeId(topologyData.links[i].target));
-				log('removing link #' + i);
-				removeLink(i);
-			}
-			else if(topologyData.links[i].target == node.id) {
-				if(topologyData.links[i].source >= appConfig.baseNodeNumber)
-					removeNode(findArrayKeyByNodeId(topologyData.links[i].source));
-				log('removing link #' + i);
-				removeLink(i);
+		var linkId;
+		for(var i = 0; i < topologyData.links.length;){
+			var currentLink = topologyData.links[i];
+			if (currentLink.source == node.id || currentLink.target == node.id) {
+				linkId = currentLink.id;
+				if (currentLink.source == node.id && currentLink.target > currentLink.source){
+					removeNode(findArrayKeyByNodeId(currentLink.target));
+				}
+				else if(currentLink.target == node.id && currentLink.source > currentLink.target){
+					removeNode(findArrayKeyByNodeId(currentLink.target));
+				}
+				removeLink(findArrayKeyByLinkId(linkId));
 			}
 			else
 				i++;
-
-
+		}
 	}
 };
 
 // remove link
 var removeLink = function(linkArrayId){
-	if(linkArrayId in topologyData.links)
-		topologyData.links.splice(linkArrayId,1);
-};
-
-var findArrayKeyByNodeId = function(nodeId){
-	for(var i=0;i<topologyData.nodes.length;i++)
-		if(topologyData.nodes[i].id == nodeId) return i;
-	return -1;
+	if(linkArrayId in topologyData.links) {
+		topologyData.links.splice(linkArrayId, 1);
+	}
 };
 
 // remove a random node from
