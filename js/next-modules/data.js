@@ -5,7 +5,7 @@ This module implements data processing
 // define an empty topology data object
 var nodesNames = [];
 
-var apiURL = 'http://localhost:5555'
+var apiURL = 'http://localhost:5555';
 
 // function transforms odl respond to next json format
 var odl2next = function (nx,topology,data,is_init) {
