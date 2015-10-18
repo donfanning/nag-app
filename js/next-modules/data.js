@@ -16,46 +16,33 @@ var odl2next = function (nx,topology,data,is_init) {
 	try {
 		// parsing JSON; if fails, it throws 'SyntaxError'
 		data = JSON.parse(data);
-
 		// if first time launched
 		if(is_init)
 			topology.data(data);
 		// if launched by timer
 		else {
-			
+			// go through fetched nodes' array
+			nx.each(data.nodes, function (nodeData) {
+				var node = topology.getNode(nodeData.id);
+				if(typeof(node) == 'Array'){
+					// update if necessary
+				}
+				else{
+					// if it's not array it means the node not exists, so we need to add it
+					topology.addNode(nodeData);
+				}
+			});
+			// go through fetched links' array
+			nx.each(data.links,function(linkData){
+				var link = topology.getLink(linkData.id);
+				// if it's an array it means the link exists and we don't need to add it
+				if(typeof(link) != 'Array'){
+					topology.addLink(linkData);
+				}
+			});
+			// adjust topology's size
+			topology.fit();
 		}
-
-/*
-		// go through fetched nodes' array
-		nx.each(data.nodes, function (nodeData) {
-			var node = topology.getNode(nodeData.id);
-			// if it's an array it means the node exists and we don't need to add it
-			if(typeof(node) != 'Array'){
-				topology.addNode(nodeData);
-			}
-		});
-		// go through fetched links' array
-		nx.each(data.links,function(linkData){
-			var link = topology.getLink(linkData.id);
-			// if it's an array it means the link exists and we don't need to add it
-			if(typeof(link) != 'Array'){
-				topology.addLink(linkData);
-			}
-		});
-		// go through fetched nodesets' array
-		nx.each(data.nodeSet,function(nodeSetData){
-			var nodeSet = topology.getLink(linkData.id);
-			// if it's an array it means the link exists and we don't need to add it
-			if(typeof(link) != 'Array'){
-				topology.addLink(linkData);
-			}
-		});
-		// adjust topology's size
-		topology.fit();
-
-*/
-
-
 	}
 	catch(SyntaxError){
 		alert('JSON response with topology data is not valid.\nVerify you REST API and server-side application.');
@@ -88,7 +75,7 @@ var ajaxErrorHandler = function(jqXHR, exception){
 };
 
 // implementing an async http request
-var loadJSON = function(app,topology,is_init) {
+var loadJSON = function(app,topology,nx,is_init) {
 	$.ajax({
 		url: apiURL + "/topology",
 		type: 'GET',
