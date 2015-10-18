@@ -5,6 +5,8 @@ This module implements data processing
 // define an empty topology data object
 var nodesNames = [];
 
+var apiURL = 'http://localhost:5555'
+
 // function transforms odl respond to next json format
 var odl2next = function (nx,topology,data,is_init) {
 	// prepare stub for results
@@ -61,10 +63,34 @@ var odl2next = function (nx,topology,data,is_init) {
 	return topologyResult;
 };
 
+var ajaxErrorHandler = function(jqXHR, exception){
+	if (jqXHR.status === 0) {
+		//alert('Not connect.\nVerify Network.');
+	}
+	else if (jqXHR.status == 404) {
+		alert('Requested page not found. [404]');
+	}
+	else if (jqXHR.status == 500) {
+		alert('Internal Server Error [500].');
+	}
+	else if (exception === 'parsererror') {
+		alert('Requested JSON parse failed.');
+	}
+	else if (exception === 'timeout') {
+		alert('Time out error.');
+	}
+	else if (exception === 'abort') {
+		alert('Ajax request aborted.');
+	}
+	else {
+		alert('Uncaught Error.\n' + jqXHR.responseText);
+	}
+};
+
 // implementing an async http request
 var loadJSON = function(app,topology,is_init) {
 	$.ajax({
-		url: "http://localhost:5555/topology",
+		url: apiURL + "/topology",
 		type: 'GET',
 		contentType: 'application/json',
 		// as soon as scripts receives valid result, this function will be run
@@ -73,28 +99,6 @@ var loadJSON = function(app,topology,is_init) {
 			odl2next(nx,topology,data,is_init);
 		},
 		// errors will never pass silently
-		error: function (jqXHR, exception) {
-			if (jqXHR.status === 0) {
-				//alert('Not connect.\nVerify Network.');
-			}
-			else if (jqXHR.status == 404) {
-				alert('Requested page not found. [404]');
-			}
-			else if (jqXHR.status == 500) {
-				alert('Internal Server Error [500].');
-			}
-			else if (exception === 'parsererror') {
-				alert('Requested JSON parse failed.');
-			}
-			else if (exception === 'timeout') {
-				alert('Time out error.');
-			}
-			else if (exception === 'abort') {
-				alert('Ajax request aborted.');
-			}
-			else {
-				alert('Uncaught Error.\n' + jqXHR.responseText);
-			}
-		}
+		error: ajaxErrorHandler
 	});
 };

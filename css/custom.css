@@ -5,3 +5,11 @@
 .bold-text {
     font-weight: 800;
 }
+
+.green-text {
+    color: #009900;
+}
+
+.red-text {
+    color: #990000;
+}
