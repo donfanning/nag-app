@@ -15,7 +15,7 @@ var appConfig = {
 	'baseNodeNumber': topologyData.nodes.length,
 	'aplicableMultiplicity': 5, // maximum number of host per 1 router,
 	'permissibleInterval': 0.25, // (baseNodeNumber * aplicableMultiplicity) +- permissibleInterval%
-	'timeout': 3000, // timeout of live topology processing
+	'timeout': 1000, // timeout of live topology processing
 	'debug': true, // debug mode (log messages)
 	'port': 5555, // port to be listened to
 	'lastNodeId': topologyData.nodes.length-1,
