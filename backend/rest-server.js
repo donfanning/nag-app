@@ -41,7 +41,7 @@ var log = function(message){
 var addRandomNode = function(){
 	appConfig.lastNodeId++;
 	// new node
-	var newNodeId = topologyData.nodes.length;
+	var newNodeArrayKey = topologyData.nodes.length;
 	topologyData.nodes.push({
 		"id": appConfig.lastNodeId,
 		"name": 'host:' + appConfig.lastNodeId,
@@ -49,25 +49,44 @@ var addRandomNode = function(){
 		"y": Math.floor(Math.random() * 400 + 10)
 	});
 	// new link
-	var newLinkedElementId = Math.floor(Math.random() * newNodeId);
+	var newLinkedElementId = Math.floor(Math.random() * newNodeArrayKey);
 	var newLinkedNodeId = topologyData.nodes[newLinkedElementId].id;
 	topologyData.links.push({
 		"source": newLinkedNodeId,
-		"target": newNodeId
+		"target": appConfig.lastNodeId
 	});
-	log(appConfig.lastNodeId + " - " + newLinkedNodeId);
-	topologyData.nodes[newNodeId].group = topologyData.nodes[newLinkedElementId].group;
-	topologyData.nodeSet[topologyData.nodes[newNodeId].group].nodes.push(appConfig.lastNodeId);
+	log(appConfig.lastNodeId + " <- " + newLinkedNodeId);
+	topologyData.nodes[newNodeArrayKey].group = topologyData.nodes[newLinkedElementId].group;
+	topologyData.nodeSet[topologyData.nodes[newNodeArrayKey].group].nodes.push(appConfig.lastNodeId);
 	debug.added++;
 };
 
 // remove node
 var removeNode = function(nodeArrayId){
 	if(nodeArrayId in topologyData.nodes) {
+
 		var node = topologyData.nodes[nodeArrayId];
 		// remove node id from nodeset
 		topologyData.nodeSet[node.group].nodes.splice(topologyData.nodeSet[node.group].nodes.indexOf(node.id),1);
 		topologyData.nodes.splice(nodeArrayId, 1);
+
+		for(var i = 0; i < topologyData.links.length;)
+			if(topologyData.links[i].source == node.id){
+				if(topologyData.links[i].target >= appConfig.baseNodeNumber)
+					removeNode(findArrayKeyByNodeId(topologyData.links[i].target));
+				log('removing link #' + i);
+				removeLink(i);
+			}
+			else if(topologyData.links[i].target == node.id) {
+				if(topologyData.links[i].source >= appConfig.baseNodeNumber)
+					removeNode(findArrayKeyByNodeId(topologyData.links[i].source));
+				log('removing link #' + i);
+				removeLink(i);
+			}
+			else
+				i++;
+
+
 	}
 };
 
@@ -77,28 +96,18 @@ var removeLink = function(linkArrayId){
 		topologyData.links.splice(linkArrayId,1);
 };
 
+var findArrayKeyByNodeId = function(nodeId){
+	for(var i=0;i<topologyData.nodes.length;i++)
+		if(topologyData.nodes[i].id == nodeId) return i;
+	return -1;
+};
+
 // remove a random node from
 var removeRandomNode = function(){
 	// node that will be removed
 	var toBeRemoved = Math.floor((Math.random() * (topologyData.nodes.length - appConfig.baseNodeNumber)) + appConfig.baseNodeNumber);
 	log('removing a node #' + toBeRemoved);
 	removeNode(toBeRemoved);
-	// todo: fix incorrect identification of nodes
-	for(var i = 0; i < topologyData.links.length;)
-		if(topologyData.links[i].source == toBeRemoved){
-			if(topologyData.links[i].target > appConfig.baseNodeNumber)
-				removeNode(topologyData.links[i].target);
-			log('removing link #' + i);
-			removeLink(i);
-		}
-		else if(topologyData.links[i].target == toBeRemoved) {
-			if(topologyData.links[i].source > appConfig.baseNodeNumber)
-				removeNode(topologyData.links[i].source);
-			log('removing link #' + i);
-			removeLink(i);
-		}
-		else
-			i++;
 	debug.removed++;
 };
 
@@ -125,7 +134,7 @@ var liveTopologyProcessing = function(){
 			addRandomNode();
 		}
 	}
-	log('live running; ' + "current: " + topologyData.nodes.length);
+	log('live running; ' + "total nodes: " + topologyData.nodes.length);
 };
 
 // initialize live network
