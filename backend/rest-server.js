@@ -17,7 +17,9 @@ var appConfig = {
 	'permissibleInterval': 0.25, // (baseNodeNumber * aplicableMultiplicity) +- permissibleInterval%
 	'timeout': 500, // timeout of live topology processing
 	'debug': true, // debug mode (log messages)
-	'port': 5555 // port to be listened to
+	'port': 5555, // port to be listened to
+	'lastNodeId': topologyData.nodes.length-1,
+	'lastLinkId': topologyData.links.length-1
 };
 
 // debug stuff
@@ -37,31 +39,42 @@ var log = function(message){
 
 // add a random node
 var addRandomNode = function(){
+	appConfig.lastNodeId++;
 	// new node
 	var newNodeId = topologyData.nodes.length;
 	topologyData.nodes.push({
-		"id": newNodeId,
-		"name": 'host:' + newNodeId,
+		"id": appConfig.lastNodeId,
+		"name": 'host:' + appConfig.lastNodeId,
 		"x": Math.floor(Math.random() * 800 + 10),
 		"y": Math.floor(Math.random() * 400 + 10)
 	});
 	// new link
+	var newLinkedElementId = Math.floor(Math.random() * newNodeId);
+	var newLinkedNodeId = topologyData.nodes[newLinkedElementId].id;
 	topologyData.links.push({
-		// random node's id except the new one's
-		"source": Math.floor(Math.random() * (newNodeId - 1)),
+		"source": newLinkedNodeId,
 		"target": newNodeId
 	});
+	log(appConfig.lastNodeId + " - " + newLinkedNodeId);
+	topologyData.nodes[newNodeId].group = topologyData.nodes[newLinkedElementId].group;
+	topologyData.nodeSet[topologyData.nodes[newNodeId].group].nodes.push(appConfig.lastNodeId);
 	debug.added++;
 };
 
-var removeNode = function(node_id){
-	if(node_id in topologyData.nodes)
-		topologyData.nodes.splice(node_id,1);
+// remove node
+var removeNode = function(nodeArrayId){
+	if(nodeArrayId in topologyData.nodes) {
+		var node = topologyData.nodes[nodeArrayId];
+		// remove node id from nodeset
+		topologyData.nodeSet[node.group].nodes.splice(topologyData.nodeSet[node.group].nodes.indexOf(node.id),1);
+		topologyData.nodes.splice(nodeArrayId, 1);
+	}
 };
 
-var removeLink = function(link_id){
-	if(link_id in topologyData.links)
-		topologyData.links.splice(link_id,1);
+// remove link
+var removeLink = function(linkArrayId){
+	if(linkArrayId in topologyData.links)
+		topologyData.links.splice(linkArrayId,1);
 };
 
 // remove a random node from
@@ -70,15 +83,16 @@ var removeRandomNode = function(){
 	var toBeRemoved = Math.floor((Math.random() * (topologyData.nodes.length - appConfig.baseNodeNumber)) + appConfig.baseNodeNumber);
 	log('removing a node #' + toBeRemoved);
 	removeNode(toBeRemoved);
+	// todo: fix incorrect identification of nodes
 	for(var i = 0; i < topologyData.links.length;)
 		if(topologyData.links[i].source == toBeRemoved){
-			if(topologyData.links[i].target >= appConfig.baseNodeNumber)
+			if(topologyData.links[i].target > appConfig.baseNodeNumber)
 				removeNode(topologyData.links[i].target);
 			log('removing link #' + i);
 			removeLink(i);
 		}
 		else if(topologyData.links[i].target == toBeRemoved) {
-			if(topologyData.links[i].source >= appConfig.baseNodeNumber)
+			if(topologyData.links[i].source > appConfig.baseNodeNumber)
 				removeNode(topologyData.links[i].source);
 			log('removing link #' + i);
 			removeLink(i);
@@ -111,8 +125,7 @@ var liveTopologyProcessing = function(){
 			addRandomNode();
 		}
 	}
-
-	log('live running ' + "current: " + topologyData.nodes.length);
+	log('live running; ' + "current: " + topologyData.nodes.length);
 };
 
 // initialize live network
@@ -159,4 +172,3 @@ server.on('request',function(req,res){
 
 // start listening to income connections
 server.listen(appConfig.port);
-

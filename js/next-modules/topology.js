@@ -37,6 +37,10 @@ This module is intended to configure topology class
 							'label': 'model.label',
 							'iconType': 'groupL'
 						},
+						tooltipManagerConfig: {
+							nodeTooltipContentClass: 'TooltipNode',
+							linkTooltipContentClass: 'TooltipLink'
+						},
 						'identityKey': 'id', // helps to link source and target
 						'width': 800,
 						'height': 400,
